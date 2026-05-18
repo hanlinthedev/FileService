@@ -1,0 +1,37 @@
+# Environment files (which you mentioned)
+.env
+.env.test
+.env.*
+
+# --- Project-Specific Local Storage ---
+# Your project dynamically creates folders under storage/ to save uploaded files (e.g., storage/2026/05/...)
+# We ignore the uploaded content but keep the directory structure if needed.
+storage/[0-9]*/
+storage/**/*.png
+storage/**/*.jpg
+storage/**/*.jpeg
+storage/**/*.pdf
+# Alternatively, ignore everything inside the root storage directory except a placeholder file
+# storage/
+# !storage/.gitkeep
+
+# --- Go / Compilation Binaries ---
+# Compiled binaries, as they should be built from source on the target machine
+/cmd/server/server
+/cmd/server/main
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+bin/
+
+# --- IDE-Specific Files (JetBrains / GoLand) ---
+# GoLand automatically creates a hidden .idea folder for project configurations
+.idea/
+*.iw
+*.iws
+
+# --- Operating System Files ---
+.DS_Store
+Thumbs.db
