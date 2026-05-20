@@ -43,3 +43,13 @@ func (s *LocalStorage) Delete(path string) error {
 	fullPath := filepath.Join(s.rootPath, path)
 	return os.Remove(fullPath)
 }
+
+func (s *LocalStorage) GetFullPath(path string) string {
+	return filepath.Join(s.rootPath, path)
+}
+
+func (s *LocalStorage) Exists(path string) bool {
+	full := s.GetFullPath(path)
+	_, err := os.Stat(full)
+	return err == nil
+}

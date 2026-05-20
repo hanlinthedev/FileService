@@ -7,21 +7,22 @@ import (
 
 type Config struct {
 	Port string
-	
+
 	DBHost     string
 	DBPort     string
 	DBUser     string
 	DBPassword string
 	DBName     string
-	
-	StoragePath string
-	MaxFileSize int64
+
+	StoragePath      string
+	MaxFileSize      int64
+	AllowedExtension []string
 }
 
 func LoadConfig() (*Config, error) {
-	
+
 	maxFileSize, _ := strconv.ParseInt(os.Getenv("MAX_FILE_SIZE"), 10, 64)
-	
+
 	config := &Config{
 		Port:        os.Getenv("PORT"),
 		DBHost:      os.Getenv("DB_HOST"),
@@ -32,6 +33,6 @@ func LoadConfig() (*Config, error) {
 		StoragePath: os.Getenv("STORAGE_PATH"),
 		MaxFileSize: maxFileSize,
 	}
-	
+
 	return config, nil
 }

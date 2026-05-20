@@ -34,14 +34,18 @@ func main() {
 	}
 
 	r := gin.Default()
+	r.MaxMultipartMemory = cfg.MaxFileSize
 
 	repo := repositories.NewPgFileRepository(db)
 	store := storage.NewLocalStorage(cfg.StoragePath)
-	service := services.NewFileService(repo, store)
+	service := services.NewFileService(repo, store, cfg.MaxFileSize)
 	handler := handlers.NewFileHandler(service)
 
 	r.GET("/health", handlers.HealthCheck)
 	r.POST("/files/upload", handler.Upload)
+	r.DELETE("/files/delete/:id", handler.Delete)
+	r.GET("/files/:id", handler.GetById)
+	r.GET("/files/:id/download", handler.Download)
 
 	log.Printf("Listening on port %s", cfg.Port)
 	if err = r.Run(":" + cfg.Port); err != nil {
