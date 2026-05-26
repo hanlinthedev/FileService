@@ -1,6 +1,8 @@
 package repositories
 
 import (
+	"context"
+
 	"github.com/hanlinthedev/file-service/internal/models"
 	"gorm.io/gorm"
 )
@@ -15,8 +17,8 @@ func NewPgFileRepository(db *gorm.DB) FileRepository {
 	}
 }
 
-func (r *pgFileRepository) Create(file *models.File) error {
-	return r.db.Create(file).Error
+func (r *pgFileRepository) Create(ctx context.Context, file *models.File) error {
+	return r.db.WithContext(ctx).Create(file).Error
 }
 
 func (r *pgFileRepository) FindById(id string) (*models.File, error) {
@@ -27,6 +29,6 @@ func (r *pgFileRepository) FindById(id string) (*models.File, error) {
 	return &file, nil
 }
 
-func (r *pgFileRepository) Delete(id string) error {
-	return r.db.Delete(&models.File{}, "id = ?", id).Error
+func (r *pgFileRepository) Delete(ctx context.Context, id string) error {
+	return r.db.WithContext(ctx).Delete(&models.File{}, "id = ?", id).Error
 }

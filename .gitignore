@@ -2,7 +2,7 @@
 .env
 .env.test
 .env.*
-
+master_roadmap_and_progress.md
 # --- Project-Specific Local Storage ---
 # Your project dynamically creates folders under storage/ to save uploaded files (e.g., storage/2026/05/...)
 # We ignore the uploaded content but keep the directory structure if needed.

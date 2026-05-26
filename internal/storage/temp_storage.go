@@ -8,15 +8,15 @@ import (
 	"path/filepath"
 )
 
-type LocalStorage struct {
+type TempStorage struct {
 	rootPath string
 }
 
 func NewLocalStorage(rootPath string) Storage {
-	return &LocalStorage{rootPath: rootPath}
+	return &TempStorage{rootPath: rootPath}
 }
 
-func (s *LocalStorage) Save(file multipart.File, path string) error {
+func (s *TempStorage) Save(file multipart.File, path string) error {
 	fullPath := filepath.Join(s.rootPath, path)
 
 	dir := filepath.Dir(fullPath)
@@ -39,16 +39,16 @@ func (s *LocalStorage) Save(file multipart.File, path string) error {
 	return err
 }
 
-func (s *LocalStorage) Delete(path string) error {
+func (s *TempStorage) Delete(path string) error {
 	fullPath := filepath.Join(s.rootPath, path)
 	return os.Remove(fullPath)
 }
 
-func (s *LocalStorage) GetFullPath(path string) string {
+func (s *TempStorage) GetFullPath(path string) string {
 	return filepath.Join(s.rootPath, path)
 }
 
-func (s *LocalStorage) Exists(path string) bool {
+func (s *TempStorage) Exists(path string) bool {
 	full := s.GetFullPath(path)
 	_, err := os.Stat(full)
 	return err == nil

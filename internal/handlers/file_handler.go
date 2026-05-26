@@ -4,7 +4,9 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
+	"github.com/hanlinthedev/file-service/internal/response"
 	"github.com/hanlinthedev/file-service/internal/services"
+	"github.com/hanlinthedev/file-service/internal/transport"
 )
 
 type FileHandler struct {
@@ -20,43 +22,36 @@ func NewFileHandler(service services.FileService) *FileHandler {
 func (h *FileHandler) Upload(c *gin.Context) {
 	fileHeader, err := c.FormFile("file")
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"error": "File is required.",
-		})
+		transport.HandleError(c, err)
 		return
 	}
 
 	file, err := fileHeader.Open()
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{
-			"error": "Failed to open file.",
-		})
+		transport.HandleError(c, err)
 		return
 	}
 
 	defer func() {
 		_ = file.Close()
 	}()
-
-	res, err := h.service.Upload(file, fileHeader)
+	ctx := c.Request.Context()
+	res, err := h.service.Upload(ctx, file, fileHeader)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{
-			"error": err.Error(),
-		})
+		transport.HandleError(c, err)
 		return
 	}
-	c.JSON(http.StatusCreated, res)
+	response.Success(c, http.StatusCreated, res)
 }
 
 func (h *FileHandler) Delete(c *gin.Context) {
 	id := c.Param("id")
-	if err := h.service.Delete(id); err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{
-			"error": err.Error(),
-		})
+	ctx := c.Request.Context()
+	if err := h.service.Delete(ctx, id); err != nil {
+		transport.HandleError(c, err)
 		return
 	}
-	c.Status(http.StatusNoContent)
+	response.Success(c, http.StatusNoContent, nil)
 }
 
 func (h *FileHandler) GetById(c *gin.Context) {
@@ -64,12 +59,10 @@ func (h *FileHandler) GetById(c *gin.Context) {
 
 	file, err := h.service.GetById(id)
 	if err != nil {
-		c.JSON(http.StatusNotFound, gin.H{
-			"error": "File Not Found",
-		})
+		transport.HandleError(c, err)
 		return
 	}
-	c.JSON(http.StatusOK, file)
+	response.Success(c, http.StatusOK, file)
 }
 
 func (h *FileHandler) Download(c *gin.Context) {
@@ -77,9 +70,7 @@ func (h *FileHandler) Download(c *gin.Context) {
 
 	fullPath, mime, err := h.service.GetStoragePath(id)
 	if err != nil {
-		c.JSON(http.StatusNotFound, gin.H{
-			"error": err.Error(),
-		})
+		transport.HandleError(c, err)
 		return
 	}
 	c.Header("Content-Type", mime)
