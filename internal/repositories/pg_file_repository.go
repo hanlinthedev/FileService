@@ -32,3 +32,15 @@ func (r *pgFileRepository) FindById(id string) (*models.File, error) {
 func (r *pgFileRepository) Delete(ctx context.Context, id string) error {
 	return r.db.WithContext(ctx).Delete(&models.File{}, "id = ?", id).Error
 }
+
+func (r *pgFileRepository) FindByStatus(ctx context.Context, status models.FileStatus) ([]models.File, error) {
+	var files []models.File
+	if err := r.db.WithContext(ctx).Where("file_status = ?", status).Find(&files).Error; err != nil {
+		return nil, err
+	}
+	return files, nil
+}
+
+func (r *pgFileRepository) UpdateStatus(ctx context.Context, id string, status models.FileStatus) error {
+	return r.db.Model(&models.File{}).WithContext(ctx).Where("id = ?", id).Update("file_status", status).Error
+}

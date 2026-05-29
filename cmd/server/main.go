@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"errors"
 	"net/http"
 	"os"
 	"os/signal"
@@ -18,6 +19,7 @@ import (
 	"github.com/hanlinthedev/file-service/internal/repositories"
 	"github.com/hanlinthedev/file-service/internal/services"
 	"github.com/hanlinthedev/file-service/internal/storage"
+	"github.com/hanlinthedev/file-service/internal/workers"
 	"github.com/joho/godotenv"
 )
 
@@ -70,10 +72,7 @@ func main() {
 	r.GET("/files/:id", handler.GetById)
 	r.GET("/files/:id/download", handler.Download)
 
-	// log.Info("Listening on port", cfg.Port)
-	// if err = r.Run(":" + cfg.Port); err != nil {
-	// 	log.Error(err.Error())
-	// }
+	uploadWorker := workers.NewUploadWorker(repo, log)
 
 	srv := &http.Server{
 		Addr:    ":" + cfg.Port,
@@ -81,19 +80,24 @@ func main() {
 	}
 
 	go func() {
-		if err := srv.ListenAndServe(); err != nil {
+		if err := srv.ListenAndServe(); err != nil && !errors.Is(err, http.ErrServerClosed) {
 			log.Error(err.Error())
 		}
 	}()
 
 	quit := make(chan os.Signal, 1)
 	signal.Notify(quit, os.Interrupt, syscall.SIGTERM)
+
+	appCtx, cancel := context.WithCancel(context.Background())
+	go uploadWorker.Start(appCtx)
+
 	<-quit
 	log.Info("shutdown signal received")
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	cancel()
+	shutDownCtx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 
 	defer cancel()
-	if err := srv.Shutdown(ctx); err != nil {
+	if err := srv.Shutdown(shutDownCtx); err != nil {
 		log.Error("server shutdown failed", "error", err)
 	}
 	log.Info("server exited gracefully")
